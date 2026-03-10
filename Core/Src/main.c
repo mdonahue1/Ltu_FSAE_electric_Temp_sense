@@ -147,7 +147,7 @@ void checkAndTriggerFaults() {
 static void writeSegmentTemperaturesOverCan() {
   uint8_t segmentsToRefresh = segmentRefreshFlag;
   for (uint8_t segment = 0; segment < SEGMENT_COUNT; segment++) {
-    if ((segmentsToRefresh >> segment) & 0b1) continue;
+    //if ((segmentsToRefresh >> segment) & 0b1) continue;
 
     CanSegmentTempData_t tempData = { 0 };
 
@@ -271,9 +271,9 @@ int main(void)
 		  checkAndTriggerFaults();
 	  }
 
-	  if (segmentRefreshFlag != 0) {
+	  //if (segmentRefreshFlag != 0) {
 	    writeSegmentTemperaturesOverCan();
-	  }
+	  //}
   }
   /* USER CODE END 3 */
 }
