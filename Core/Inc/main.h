@@ -53,10 +53,24 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void setFault(uint8_t flag);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define S3_channel_Pin GPIO_PIN_10
+#define S3_channel_GPIO_Port GPIOB
+#define Orange_LED_Pin GPIO_PIN_8
+#define Orange_LED_GPIO_Port GPIOC
+#define Green_LED_Pin GPIO_PIN_9
+#define Green_LED_GPIO_Port GPIOC
+#define Fault_line_Pin GPIO_PIN_8
+#define Fault_line_GPIO_Port GPIOA
+#define S0_channel_Pin GPIO_PIN_3
+#define S0_channel_GPIO_Port GPIOB
+#define S2_channel_Pin GPIO_PIN_4
+#define S2_channel_GPIO_Port GPIOB
+#define S1_channel_Pin GPIO_PIN_5
+#define S1_channel_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -1,282 +1,369 @@
-// Nucleo-F446RE + CD74HC4067 (1 mux): D3..D6 = PB3, PB5, PB4, PB10 (S0..S3)
-// A0 (PA0/ADC1_IN0) reads; VDDA via factory VREFINT; UART2 @115200
-// Features: throw-away sample after channel switch, open detection, single-point calibration, lock-to-channel mode
-#include "stm32f4xx_hal.h"
+/* USER CODE BEGIN Header */
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "adc.h"
+#include "can.h"
+#include "dma.h"
+#include "tim.h"
+#include "gpio.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
+/* USER CODE END Includes */
 
-/* ===== Optional single-point calibration =====
-   Map your measured room volts to the table’s room volts.
-   Example: if your room reads ~1.995 V but should be ~1.868 V, set ROOM_VOLTS_MEAS=1.995f. */
-#define USE_CAL_SCALE     1
-#define ROOM_VOLTS_MEAS   1.995f   // <-- put YOUR average room volts here
-#define ROOM_VOLTS_TABLE  1.868f   // table volts near 24–25 °C
-#define CAL_VSCALE        (ROOM_VOLTS_TABLE / ROOM_VOLTS_MEAS)
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+typedef struct {
+  float temp_c;
+  float volts;
+} temp_point_t;
 
-/* ===== Lock-to-channel logger =====
-   Set to 255 to scan active[]; otherwise it locks and prints that channel at ~10 Hz (great for freezer/heat tests). */
-#define LOCK_CHANNEL      255      // e.g., 13 to lock C13, or 255 to scan active[] list
+#define CAN_MESSAGES_PER_SEGMENT           3
+#define CELLS_PER_CAN_MESSAGE              8
 
-/* ===== Open-channel threshold (mV) ===== */
-#define OPEN_MV_THRESHOLD 3100     // >= this is considered "open" (prints ---)
-#define AVG_SAMPLES       16
+typedef union {
+  uint8_t canTempArrays[CAN_MESSAGES_PER_SEGMENT][CELLS_PER_CAN_MESSAGE];
+  uint8_t contiguousTempArray[CAN_MESSAGES_PER_SEGMENT * CELLS_PER_CAN_MESSAGE];
+} CanSegmentTempData_t;
+/* USER CODE END PTD */
 
-/* HAL module guards (for bare projects) */
-#ifndef HAL_MODULE_ENABLED
-#define HAL_MODULE_ENABLED
-#endif
-#ifndef HAL_RCC_MODULE_ENABLED
-#define HAL_RCC_MODULE_ENABLED
-#endif
-#ifndef HAL_GPIO_MODULE_ENABLED
-#define HAL_GPIO_MODULE_ENABLED
-#endif
-#ifndef HAL_ADC_MODULE_ENABLED
-#define HAL_ADC_MODULE_ENABLED
-#endif
-#ifndef HAL_UART_MODULE_ENABLED
-#define HAL_UART_MODULE_ENABLED
-#endif
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+#define MUX_PER_SEGMENT   2
+#define SEGMENT_COUNT     5
+#define MUX_BANK_COUNT		(MUX_PER_SEGMENT*SEGMENT_COUNT)
+#define CELLS_PER_MUX			12
 
-/* Handles */
-ADC_HandleTypeDef  hadc1;
-UART_HandleTypeDef huart2;
+#define CELL_TEMP_MIN			0.0f
+#define CELL_TEMP_MAX			45.0f
 
-/* Protos */
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_ADC1_Init(void);
-static void MX_USART2_UART_Init(void);
-static void Error_Handler(void);
+#define MAX_BAD_CELLS			6
 
-/* printf → UART2 */
-int __io_putchar(int ch){ HAL_UART_Transmit(&huart2,(uint8_t*)&ch,1,HAL_MAX_DELAY); return ch; }
+#define TEMP_SEGMENT_SYNC_MSGS_PER_SEGMENT  3
+#define TEMP_SEGMENT_SYNC_CAN_ID_BASE       0x312
+#define TEMP_SEGMENT_SYNC_CAN_ID_OFFSET     0x010
+#define TEMP_SEGMENT_SYNC_DEGREES_C_OFFSET  40
 
-/* ---------- MUX pins: D3..D6 = PB3, PB5, PB4, PB10 ---------- */
-#define MUX_S0_GPIO GPIOB
-#define MUX_S0_PIN  GPIO_PIN_3   // D3 → S0 (LSB)
-#define MUX_S1_GPIO GPIOB
-#define MUX_S1_PIN  GPIO_PIN_5   // D4 → S1
-#define MUX_S2_GPIO GPIOB
-#define MUX_S2_PIN  GPIO_PIN_4   // D5 → S2
-#define MUX_S3_GPIO GPIOB
-#define MUX_S3_PIN  GPIO_PIN_10  // D6 → S3 (MSB)
+/* USER CODE END PD */
 
-static void MUX_GPIO_Init(void){
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  GPIO_InitTypeDef g={0};
-  g.Mode = GPIO_MODE_OUTPUT_PP; g.Pull = GPIO_NOPULL; g.Speed = GPIO_SPEED_FREQ_LOW;
-  g.Pin  = MUX_S0_PIN|MUX_S1_PIN|MUX_S2_PIN|MUX_S3_PIN;
-  HAL_GPIO_Init(GPIOB,&g);
-  HAL_GPIO_WritePin(MUX_S0_GPIO, MUX_S0_PIN, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MUX_S1_GPIO, MUX_S1_PIN, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MUX_S2_GPIO, MUX_S2_PIN, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MUX_S3_GPIO, MUX_S3_PIN, GPIO_PIN_RESET);
-}
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
 
-static void MUX_Select(uint8_t ch){
-  HAL_GPIO_WritePin(MUX_S0_GPIO, MUX_S0_PIN, (ch & 0x01)?GPIO_PIN_SET:GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MUX_S1_GPIO, MUX_S1_PIN, (ch & 0x02)?GPIO_PIN_SET:GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MUX_S2_GPIO, MUX_S2_PIN, (ch & 0x04)?GPIO_PIN_SET:GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MUX_S3_GPIO, MUX_S3_PIN, (ch & 0x08)?GPIO_PIN_SET:GPIO_PIN_RESET);
-  for(volatile int i=0;i<12000;i++) __NOP(); // ~250–350 µs settle @84 MHz
-}
+/* USER CODE END PM */
 
-/* ---------- Energus volts↔°C points + linear interp ---------- */
-typedef struct { float degC, volts; } tc_point_t;
-static const tc_point_t temp_table[] = {
-  { -40, 2.44f }, { -20, 2.35f }, {   0, 2.17f },
-  {  15, 1.99f }, {  20, 1.92f }, {  25, 1.86f },
-  {  30, 1.80f }, {  40, 1.68f }, {  50, 1.59f },
-  {  60, 1.51f }, {  80, 1.40f }, { 100, 1.34f },
-  { 120, 1.30f }
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
+uint8_t selectedCell = 0;
+uint8_t dataReady = 0;
+uint8_t dataReadyForCell = 0;
+volatile uint32_t tempBuffer[MUX_BANK_COUNT] ;
+uint32_t rawTempReadings[MUX_BANK_COUNT*CELLS_PER_MUX];
+float temperatures[MUX_BANK_COUNT*CELLS_PER_MUX];
+
+uint8_t segmentRefreshFlag = 0;
+
+static const temp_point_t enepaq_table[] = {
+  {-40, 2.44}, {-35, 2.42}, {-30, 2.40}, {-25, 2.38},
+  {-20, 2.35}, {-15, 2.32}, {-10, 2.27}, {-5,  2.23},
+  {  0, 2.17}, {  5, 2.11}, { 10, 2.05}, { 15, 1.99},
+  { 20, 1.92}, { 25, 1.86}, { 30, 1.80}, { 35, 1.74},
+  { 40, 1.68}, { 45, 1.63}, { 50, 1.59}, { 55, 1.55},
+  { 60, 1.51}, { 65, 1.48}, { 70, 1.45}, { 75, 1.43},
+  { 80, 1.40}, { 85, 1.38}, { 90, 1.37}, { 95, 1.35},
+  {100, 1.34}, {105, 1.33}, {110, 1.32}, {115, 1.31},
+  {120, 1.30}
 };
-static const int NPTS = sizeof(temp_table)/sizeof(temp_table[0]);
+/* USER CODE END PV */
 
-static float volts_to_degC(float v){
-  if (v >= temp_table[0].volts)      return temp_table[0].degC;
-  if (v <= temp_table[NPTS-1].volts) return temp_table[NPTS-1].degC;
-  for (int i=0;i<NPTS-1;i++){
-    float vhi=temp_table[i].volts, vlo=temp_table[i+1].volts;
-    if (v<=vhi && v>=vlo){
-      float thi=temp_table[i].degC, tlo=temp_table[i+1].degC;
-      float f=(vhi - v)/(vhi - vlo);
-      return thi + f*(tlo - thi);
-    }
-  }
-  return 25.0f;
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+/* USER CODE BEGIN PFP */
+static float    VoltageToTempC(float volts);
+static void     writeSegmentTemperaturesOverCan();
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+void writeMuxSelector() {
+  HAL_GPIO_WritePin(S0_channel_GPIO_Port, S0_channel_Pin, (selectedCell & 0b0001) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(S1_channel_GPIO_Port, S1_channel_Pin, (selectedCell & 0b0010) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(S2_channel_GPIO_Port, S2_channel_Pin, (selectedCell & 0b0100) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(S3_channel_GPIO_Port, S3_channel_Pin, (selectedCell & 0b1000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-/* ---------- ADC: VDDA via factory VREFINT calibration ---------- */
-#define VREFINT_CAL_ADDR   ((uint16_t*) (0x1FFF7A2A)) // STM32F446
-static inline void Enable_VREFINT(void){ ADC->CCR |= ADC_CCR_TSVREFE; }
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+	memcpy(rawTempReadings + MUX_BANK_COUNT*selectedCell, (const void *)tempBuffer, MUX_BANK_COUNT);
 
-typedef struct { uint16_t raw; uint16_t mv; } adc_sample_t;
+	dataReadyForCell = selectedCell;
+	selectedCell = selectedCell % CELLS_PER_MUX;
+	writeMuxSelector();
 
-static float Read_VDDA_Volts(void){
-  ADC_ChannelConfTypeDef s={0};
-  s.Channel = ADC_CHANNEL_VREFINT; s.Rank=1; s.SamplingTime=ADC_SAMPLETIME_480CYCLES;
-  HAL_ADC_ConfigChannel(&hadc1,&s);
-  HAL_ADC_Start(&hadc1); HAL_ADC_PollForConversion(&hadc1,10); (void)HAL_ADC_GetValue(&hadc1); HAL_ADC_Stop(&hadc1);
-  uint32_t acc=0;
-  for(int i=0;i<AVG_SAMPLES;i++){
-    HAL_ADC_Start(&hadc1); HAL_ADC_PollForConversion(&hadc1,10);
-    acc += (uint16_t)HAL_ADC_GetValue(&hadc1); HAL_ADC_Stop(&hadc1);
-  }
-  uint16_t vref_raw = acc/AVG_SAMPLES;
-  uint16_t vref_cal = *VREFINT_CAL_ADDR; if (!vref_raw) return 3.30f;
-  return 3.30f * ((float)vref_cal / (float)vref_raw);
+	dataReady = 1;
 }
 
-/* throw-away one conversion on PA0 (reduces ghosting from prior channel) */
-static void adc_throwaway_sample(void){
-  ADC_ChannelConfTypeDef s={0};
-  s.Channel=ADC_CHANNEL_0; s.Rank=1; s.SamplingTime=ADC_SAMPLETIME_480CYCLES;
-  HAL_ADC_ConfigChannel(&hadc1,&s);
-  HAL_ADC_Start(&hadc1); HAL_ADC_PollForConversion(&hadc1,10);
-  (void)HAL_ADC_GetValue(&hadc1); HAL_ADC_Stop(&hadc1);
+void calculateTemperatures(uint8_t cellBank) {
+	for(uint8_t i = cellBank*CELLS_PER_MUX; i < ((cellBank+1)*CELLS_PER_MUX); i++) {
+		float voltage = 3.3f * rawTempReadings[i] / 4096.0f;
+		temperatures[i] = VoltageToTempC(voltage); // Implement filter here?
+	}
 }
 
-static adc_sample_t Read_A0_raw_mv(void){
-  float vdda = Read_VDDA_Volts();
-  uint32_t vdda_mv = (uint32_t)(vdda*1000.0f + 0.5f);
+void checkAndTriggerFaults() {
+	uint8_t badCellCount = 0;
+	for (uint8_t i = 0; i < (MUX_BANK_COUNT * CELLS_PER_MUX); i++) {
+		if (temperatures[i] < CELL_TEMP_MIN) {
+			badCellCount++;
+		} else if (temperatures[i] > CELL_TEMP_MAX) {
+			badCellCount++;
+		}
+	}
 
-  ADC_ChannelConfTypeDef s={0};
-  s.Channel=ADC_CHANNEL_0; s.Rank=1; s.SamplingTime=ADC_SAMPLETIME_480CYCLES;
-  HAL_ADC_ConfigChannel(&hadc1,&s);
-
-  uint32_t acc=0;
-  for(int i=0;i<AVG_SAMPLES;i++){
-    HAL_ADC_Start(&hadc1); HAL_ADC_PollForConversion(&hadc1,10);
-    acc += (uint16_t)HAL_ADC_GetValue(&hadc1); HAL_ADC_Stop(&hadc1);
-  }
-  uint16_t raw = acc/AVG_SAMPLES;
-  uint16_t mv  = (uint16_t)((raw * vdda_mv + 2047) / 4095);
-  adc_sample_t out={raw,mv}; return out;
+	HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin,
+			(badCellCount > MAX_BAD_CELLS) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-/* -------------------- MAIN -------------------- */
-int main(void){
-  HAL_Init();
-  SystemClock_Config();
-  MX_GPIO_Init();          // PA0 analog, PA2/PA3 AF7
-  MX_USART2_UART_Init();   // 115200-8N1
-  MX_ADC1_Init();          // ADC1 base
-  Enable_VREFINT();        // once
-  MUX_GPIO_Init();         // S0..S3
+static void writeSegmentTemperaturesOverCan() {
+  uint8_t segmentsToRefresh = segmentRefreshFlag;
+  for (uint8_t segment = 0; segment < SEGMENT_COUNT; segment++) {
+    if ((segmentsToRefresh >> segment) & 0b1) continue;
 
-  printf("\r\n4067 → A0 (VREFINT-cal, throwaway sample, open detect)\r\n");
+    CanSegmentTempData_t tempData = { 0 };
 
-#if (LOCK_CHANNEL != 255)
-  // 10 Hz logger on one channel (for freezer/heat gun tests)
-  while (1) {
-    MUX_Select(LOCK_CHANNEL);
-    adc_throwaway_sample();
-    adc_sample_t s = Read_A0_raw_mv();
-    // open detect
-    if (s.mv >= OPEN_MV_THRESHOLD) { printf("C%02u: --- (open)\r\n", LOCK_CHANNEL); }
-    else {
-      float v = s.mv / 1000.0f;
-#if USE_CAL_SCALE
-      v *= CAL_VSCALE;
-#endif
-      float tC = volts_to_degC(v);
-      int t10 = (int)(tC*10.0f); int t10a = (t10<0)?-t10:t10;
-      printf("C%02u: %u mV  %s%d.%01d C\r\n", LOCK_CHANNEL, s.mv, (t10<0)?"-":"", t10a/10, t10a%10);
-    }
-    HAL_Delay(100);
-  }
-#else
-  // Scan only the channels you actually wired:
-  const uint8_t active[] = { 11,12, 13, 14, 15 };  // <-- edit these to your 4 Cx inputs
-  while (1) {
-    for (unsigned i=0; i<sizeof(active); ++i) {
-      uint8_t ch = active[i];
-      MUX_Select(ch);
-      adc_throwaway_sample();
-      adc_sample_t s = Read_A0_raw_mv();
+    uint8_t temp_i = 0;
+    for(uint8_t mux = 0; mux < 2; mux++) {
+      uint8_t mux_i = mux*MUX_PER_SEGMENT + segment;
 
-      if (s.mv >= OPEN_MV_THRESHOLD) {
-        printf("C%02u: --- (open)\r\n", ch);
-      } else {
-        float v = s.mv / 1000.0f;
-#if USE_CAL_SCALE
-        v *= CAL_VSCALE;
-#endif
-        float tC = volts_to_degC(v);
-        int t10 = (int)(tC*10.0f); int t10a=(t10<0)?-t10:t10;
-        printf("C%02u: %u mV  %s%d.%01d C\r\n", ch, s.mv, (t10<0)?"-":"", t10a/10, t10a%10);
+      for(uint8_t j = 0; j < CELLS_PER_MUX; j++) {
+        tempData.contiguousTempArray[temp_i++] = ((uint8_t)temperatures[mux_i*CELLS_PER_MUX + j]) + TEMP_SEGMENT_SYNC_DEGREES_C_OFFSET;
       }
-      HAL_Delay(75);
     }
-    HAL_Delay(250);
+
+    for(uint8_t msg_i = 0; msg_i < CAN_MESSAGES_PER_SEGMENT; msg_i++) {
+      uint32_t mailbox;
+      uint8_t msgId = TEMP_SEGMENT_SYNC_CAN_ID_BASE + TEMP_SEGMENT_SYNC_CAN_ID_OFFSET*msg_i;
+
+      CAN_TxHeaderTypeDef txHeader = {
+        .StdId = msgId, // Need to calculate ID for data
+        .ExtId = 0x00,
+        .IDE = CAN_ID_STD,
+        .RTR = CAN_RTR_DATA,
+        .DLC = 8
+      };
+
+      if (HAL_CAN_AddTxMessage(&hcan1, &txHeader, tempData.canTempArrays[msg_i], &mailbox) != HAL_OK) {
+        Error_Handler();
+      }
+
+      while(HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+    }
+
   }
-#endif
 }
 
-/* -------------------- Init functions -------------------- */
-void SystemClock_Config(void){
-  RCC_OscInitTypeDef osc={0}; RCC_ClkInitTypeDef clk={0};
+static float VoltageToTempC(float volts)
+{
+  int n = sizeof(enepaq_table) / sizeof(enepaq_table[0]);
+
+  if (volts >= enepaq_table[0].volts) return enepaq_table[0].temp_c;
+  if (volts <= enepaq_table[n - 1].volts) return enepaq_table[n - 1].temp_c;
+
+  for (int i = 0; i < n - 1; i++)
+  {
+    float v1 = enepaq_table[i].volts;
+    float v2 = enepaq_table[i + 1].volts;
+
+    if ((volts <= v1) && (volts >= v2))
+    {
+      float t1 = enepaq_table[i].temp_c;
+      float t2 = enepaq_table[i + 1].temp_c;
+      float frac = (volts - v1) / (v2 - v1);
+      return t1 + frac * (t2 - t1);
+    }
+  }
+
+  return -999.0f;
+}
+
+void setFault(uint8_t flag) {
+  if (flag) {
+    HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_SET);
+  } else {
+    HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_RESET);
+  }
+}
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+  selectedCell = 0;
+  memset((void *) tempBuffer, 0, sizeof(*tempBuffer)*MUX_BANK_COUNT);
+  memset((void *) rawTempReadings, 0, sizeof(*rawTempReadings)*MUX_BANK_COUNT*CELLS_PER_MUX);
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_ADC1_Init();
+  MX_TIM2_Init();
+  MX_CAN1_Init();
+  /* USER CODE BEGIN 2 */
+
+  HAL_ADC_Start_DMA (&hadc1, (uint32_t*) rawTempReadings, MUX_BANK_COUNT);
+  HAL_TIM_Base_Start(&htim2);
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+	  if (dataReady) {
+		  uint8_t bank = selectedCell - 1;
+		  if (bank < 0) bank += CELLS_PER_MUX;
+
+		  calculateTemperatures(bank);
+		  checkAndTriggerFaults();
+	  }
+
+	  if (segmentRefreshFlag != 0) {
+	    writeSegmentTemperaturesOverCan();
+	  }
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Configure the main internal regulator output voltage
+  */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-  osc.OscillatorType=RCC_OSCILLATORTYPE_HSI; osc.HSIState=RCC_HSI_ON;
-  osc.HSICalibrationValue=RCC_HSICALIBRATION_DEFAULT;
-  osc.PLL.PLLState=RCC_PLL_ON; osc.PLL.PLLSource=RCC_PLLSOURCE_HSI;
-  osc.PLL.PLLM=16; osc.PLL.PLLN=336; osc.PLL.PLLP=RCC_PLLP_DIV4; osc.PLL.PLLQ=7;
-  if(HAL_RCC_OscConfig(&osc)!=HAL_OK) Error_Handler();
-  clk.ClockType=RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  clk.SYSCLKSource=RCC_SYSCLKSOURCE_PLLCLK;
-  clk.AHBCLKDivider=RCC_SYSCLK_DIV1;
-  clk.APB1CLKDivider=RCC_HCLK_DIV2; clk.APB2CLKDivider=RCC_HCLK_DIV1;
-  if(HAL_RCC_ClockConfig(&clk, FLASH_LATENCY_2)!=HAL_OK) Error_Handler();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 180;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
-/* PA0 analog; PA2/PA3 AF7 (USART2) */
-static void MX_GPIO_Init(void){
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  GPIO_InitTypeDef g={0};
-  g.Pin=GPIO_PIN_0; g.Mode=GPIO_MODE_ANALOG; g.Pull=GPIO_NOPULL;   // A0
-  HAL_GPIO_Init(GPIOA,&g);
+/* USER CODE BEGIN 4 */
 
-  g.Pin=GPIO_PIN_2|GPIO_PIN_3; g.Mode=GPIO_MODE_AF_PP; g.Pull=GPIO_PULLUP;
-  g.Speed=GPIO_SPEED_FREQ_VERY_HIGH; g.Alternate=GPIO_AF7_USART2;  // USART2
-  HAL_GPIO_Init(GPIOA,&g);
-}
+/* USER CODE END 4 */
 
-/* USART2 115200-8N1 (ST-Link VCP) */
-static void MX_USART2_UART_Init(void){
-  __HAL_RCC_USART2_CLK_ENABLE();
-  huart2.Instance=USART2;
-  huart2.Init.BaudRate=115200;
-  huart2.Init.WordLength=UART_WORDLENGTH_8B;
-  huart2.Init.StopBits=UART_STOPBITS_1;
-  huart2.Init.Parity=UART_PARITY_NONE;
-  huart2.Init.Mode=UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl=UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling=UART_OVERSAMPLING_16;
-  if(HAL_UART_Init(&huart2)!=HAL_OK) Error_Handler();
-}
-
-/* ADC1 base init (we select channels per-read, incl. VREFINT) */
-static void MX_ADC1_Init(void){
-  __HAL_RCC_ADC1_CLK_ENABLE();
-  hadc1.Instance=ADC1;
-  hadc1.Init.ClockPrescaler        = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc1.Init.Resolution            = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode          = DISABLE;
-  hadc1.Init.ContinuousConvMode    = DISABLE;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion       = 1;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection          = ADC_EOC_SINGLE_CONV;
-  if(HAL_ADC_Init(&hadc1)!=HAL_OK) Error_Handler();
-}
-
-/* Trap */
-static void Error_Handler(void){
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
-  while(1){}
+  setFault(1);
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
 }
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
