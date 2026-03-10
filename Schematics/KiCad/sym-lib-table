@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Temp_sense_Project 2.0-altium-import")(type "KiCad")(uri "${KIPRJMOD}/Temp_sense_Project 2.0-altium-import.kicad_sym")(options "")(descr ""))
+  (lib (name "TempSenseSymbols")(type "KiCad")(uri "${KIPRJMOD}/TempSenseSymbols.kicad_sym")(options "")(descr ""))
+)
