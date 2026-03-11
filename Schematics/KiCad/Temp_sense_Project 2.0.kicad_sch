@@ -23,16 +23,6 @@
 	)
 	(wire
 		(pts
-			(xy 416.56 278.13) (xy 416.56 266.7)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "087288e5-b60a-404e-93af-d9d28b504fb3")
-	)
-	(wire
-		(pts
 			(xy 378.46 219.71) (xy 378.46 234.95)
 		)
 		(stroke
@@ -160,16 +150,6 @@
 			(type default)
 		)
 		(uuid "814eb528-2169-45ee-9c68-fd52911d42fe")
-	)
-	(wire
-		(pts
-			(xy 419.1 278.13) (xy 419.1 266.7)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8335c20f-18d6-4ab4-828b-cdaad00326cd")
 	)
 	(wire
 		(pts
@@ -317,7 +297,7 @@
 			(color 128 255 128 1.0000)
 		)
 		(uuid "11f02ccb-5f28-4973-a646-77d1e27f442f")
-		(property "Sheetname" "mux side left"
+		(property "Sheetname" "Multiplexers"
 			(at 384.81 207.01 0)
 			(effects
 				(font
@@ -658,49 +638,29 @@
 				(justify right)
 			)
 		)
-		(pin "5V GND" input
-			(at 416.56 266.7 270)
-			(uuid "861660b1-b7b6-40b9-91a7-2ae25355ab2f")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "5V PWR" input
-			(at 419.1 266.7 270)
-			(uuid "69c077fc-f528-4154-9867-ffaa653a8748")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "TXD" output
-			(at 383.54 266.7 270)
-			(uuid "9434f08c-e82d-425c-8cb7-a7baed75c9d7")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "RXD" input
-			(at 378.46 266.7 270)
-			(uuid "49494606-9b67-4f58-9d17-da8386050d08")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "Fault line 1" output
+		(pin "Fault Line 1" output
 			(at 425.45 266.7 270)
-			(uuid "bd6473eb-c3f9-4918-bdc0-f68fffeeb05f")
+			(uuid "66669860-2a2b-4a38-8c19-89172e62f9e3")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "CAN RX" input
+			(at 378.46 266.7 270)
+			(uuid "0f8b94bb-9157-4891-8de7-63367d2100c3")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "CAN TX" output
+			(at 383.54 266.7 270)
+			(uuid "cdf7bccb-7cad-4e63-92b1-00217b833beb")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -733,7 +693,7 @@
 			(color 128 255 128 1.0000)
 		)
 		(uuid "a2a88989-6880-4ce3-a369-5ca5aeb72ce2")
-		(property "Sheetname" "Power"
+		(property "Sheetname" "Power and Isolation"
 			(at 371.3984 298.45 90)
 			(effects
 				(font
@@ -749,26 +709,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left top)
-			)
-		)
-		(pin "5V GND" output
-			(at 416.56 278.13 90)
-			(uuid "59875f32-4c36-4e9c-8d53-9fb3eea7552a")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(pin "5V PWR" output
-			(at 419.1 278.13 90)
-			(uuid "b0354f60-bb1c-46af-bb5e-cf6403d888fc")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 			)
 		)
 		(pin "Fault Line 1" input
