@@ -252,8 +252,12 @@ int main(void)
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_ADC_Start_DMA (&hadc1, (uint32_t*) rawTempReadings, MUX_BANK_COUNT);
-  HAL_TIM_Base_Start(&htim2);
+  if (HAL_ADC_Start_DMA (&hadc1, (uint32_t*) rawTempReadings, MUX_BANK_COUNT) != HAL_OK ||
+      HAL_TIM_Base_Start(&htim2) != HAL_OK ||
+      HAL_CAN_Start(&hcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -269,6 +273,8 @@ int main(void)
 
 		  calculateTemperatures(bank);
 		  checkAndTriggerFaults();
+
+		  dataReady = 0;
 	  }
 
 	  //if (segmentRefreshFlag != 0) {
