@@ -1,0 +1,34 @@
+:project:
+  :build_root: build
+  :release_build: TRUE
+  :use_exceptions: FALSE
+  :compile_threads: 4
+  :test_file_prefix: "test_"
+  :use_backtrace: :gdb
+
+:paths:
+  :test:
+    - test/**
+  :source:
+    - ../Core/Src
+  :include:
+    - ../Core/Inc
+
+:defines:
+  :test:
+    - TEST
+
+:flags:
+  :test:
+    :compile:
+      :*:
+        - -Wall
+        - -Werror
+
+:unity:
+  :use_param_tests: TRUE
+
+:plugins:
+  :enabled:
+    - report_tests_pretty_stdout
+    - compile_commands_json_db
