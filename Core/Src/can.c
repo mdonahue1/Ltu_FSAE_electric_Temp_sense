@@ -113,5 +113,66 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void TS_ECU_SYNC_RX1_FilterConfig(void)
+{
+  CAN_FilterTypeDef filter;
 
+  filter.FilterActivation = CAN_FILTER_ENABLE;
+  filter.FilterBank = 0;
+  filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  filter.FilterIdHigh = (TS_ECU_SYNC_RX1_CANID << 5);
+  filter.FilterIdLow = (0x000U);
+  filter.FilterMaskIdHigh = (TS_ECU_SYNC_RX1_CANID << 5);
+  filter.FilterMaskIdLow = (0x000U);
+  filter.FilterMode = CAN_FILTERMODE_IDLIST;
+  filter.FilterScale = CAN_FILTERSCALE_32BIT;
+  filter.SlaveStartFilterBank = 15;
+
+  if (HAL_CAN_ConfigFilter(&hcan1, &filter) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+void TS_ECU_SYNC_RX2_FilterConfig(void)
+{
+  CAN_FilterTypeDef filter;
+
+  filter.FilterActivation = CAN_FILTER_ENABLE;
+  filter.FilterBank = 1;
+  filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  filter.FilterIdHigh = (TS_ECU_SYNC_RX2_CANID << 5);
+  filter.FilterIdLow = (0x000U);
+  filter.FilterMaskIdHigh = (TS_ECU_SYNC_RX2_CANID << 5);
+  filter.FilterMaskIdLow = (0x000U);
+  filter.FilterMode = CAN_FILTERMODE_IDLIST;
+  filter.FilterScale = CAN_FILTERSCALE_32BIT;
+  filter.SlaveStartFilterBank = 15;
+
+  if (HAL_CAN_ConfigFilter(&hcan1, &filter) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+void TS_ECU_ChargingStateTrigFilterConfig(void)
+{
+  CAN_FilterTypeDef filter;
+
+  filter.FilterActivation = CAN_FILTER_ENABLE;
+  filter.FilterBank = 2;
+  filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  filter.FilterIdHigh = (TS_ECU_ChargingStateTrigger_CANID << 5);
+  filter.FilterIdLow = (0x000U);
+  filter.FilterMaskIdHigh = (TS_ECU_ChargingStateTrigger_CANID << 5);
+  filter.FilterMaskIdLow = (0x000U);
+  filter.FilterMode = CAN_FILTERMODE_IDLIST;
+  filter.FilterScale = CAN_FILTERSCALE_32BIT;
+  filter.SlaveStartFilterBank = 15;
+
+  if (HAL_CAN_ConfigFilter(&hcan1, &filter) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
 /* USER CODE END 1 */

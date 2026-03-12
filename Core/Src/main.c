@@ -42,6 +42,11 @@ typedef struct {
 #define CELLS_PER_CAN_MESSAGE              8
 
 typedef union {
+  uint64_t data64;
+  uint8_t data8[8];
+} CanDataBlock_t;
+
+typedef union {
   uint8_t canTempArrays[CAN_MESSAGES_PER_SEGMENT][CELLS_PER_CAN_MESSAGE];
   uint8_t contiguousTempArray[CAN_MESSAGES_PER_SEGMENT * CELLS_PER_CAN_MESSAGE];
 } CanSegmentTempData_t;
@@ -54,15 +59,29 @@ typedef union {
 #define MUX_BANK_COUNT		(MUX_PER_SEGMENT*SEGMENT_COUNT)
 #define CELLS_PER_MUX			12
 
-#define CELL_TEMP_MIN			0.0f
-#define CELL_TEMP_MAX			45.0f
+// Temp conversions
+#define ADC_UNITS_TO_VOLTAGE(X)           ((X) * 3.3f / 4095.0f)
+#define VOLTAGE_TO_ADC_UNITS(x)           ((x) * 4095.0f / 3.3f)
+
+#define LOW_PASS_FILTER_ALPHA             0.3f
+#define LOW_PASS_FILTER(new, old)         ((new)*(LOW_PASS_FILTER_ALPHA) + (old)*(1.0f - (LOW_PASS_FILTER_ALPHA)))
+
+#define CELL_GROUND_SHORT_THRESHOLD       VOLTAGE_TO_ADC_UNITS(0.25f)
+#define CELL_POWER_SHORT_THRESHOLD        VOLTAGE_TO_ADC_UNITS(3.00f)
+
+#define CELL_DISCHARGE_MIN_TEMP_C         -20.0f
+#define CELL_DISCHARGE_MAX_TEMP_C         60.0f
+#define CELL_CHARGE_MIN_TEMP_C            0.0f
+#define CELL_CHARGE_MAX_TEMP_C            45.0f
 
 #define MAX_BAD_CELLS			6
+#define MAX_BAD_READINGS  6
 
-#define TEMP_SEGMENT_SYNC_MSGS_PER_SEGMENT  3
-#define TEMP_SEGMENT_SYNC_CAN_ID_BASE       0x312
-#define TEMP_SEGMENT_SYNC_CAN_ID_OFFSET     0x010
-#define TEMP_SEGMENT_SYNC_DEGREES_C_OFFSET  40
+#define TEMP_SEGMENT_SYNC_MSGS_PER_SEGMENT          3
+#define TEMP_SEGMENT_SYNC_CAN_ID_BASE               0x312
+#define TEMP_SEGMENT_SYNC_CAN_ID_SEGMENT_OFFSET     0x010
+#define TEMP_SEGMENT_SYNC_CAN_ID_MSG_OFFSET         0x001
+#define TEMP_SEGMENT_SYNC_DEGREES_C_OFFSET          40
 
 /* USER CODE END PD */
 
@@ -74,13 +93,18 @@ typedef union {
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint8_t isCharging = 0;
 uint8_t selectedCell = 0;
 uint8_t dataReady = 0;
-uint8_t dataReadyForCell = 0;
-volatile uint32_t tempBuffer[MUX_BANK_COUNT] ;
+
+volatile uint32_t tempBuffer[MUX_BANK_COUNT];
 uint32_t rawTempReadings[MUX_BANK_COUNT*CELLS_PER_MUX];
+uint8_t badTempReadings[CELLS_PER_MUX];
 float temperatures[MUX_BANK_COUNT*CELLS_PER_MUX];
 
+CAN_RxHeaderTypeDef rxHeaderFIFO0;
+uint8_t dataFIFO0[8] = { (0x00U) };
+uint8_t summaryRefreshFlag = 0;
 uint8_t segmentRefreshFlag = 0;
 
 static const temp_point_t enepaq_table[] = {
@@ -99,55 +123,101 @@ static const temp_point_t enepaq_table[] = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-static float    VoltageToTempC(float volts);
+static void     writeMuxSelector();
+static float    voltageToTempC(float volts);
+static void     writeSegmentTemperatureSummaryOverCan();
 static void     writeSegmentTemperaturesOverCan();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  /* Prevent unused argument(s) compilation warning */
+  //UNUSED(hcan);
 
-void writeMuxSelector() {
-  HAL_GPIO_WritePin(S0_channel_GPIO_Port, S0_channel_Pin, (selectedCell & 0b0001) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(S1_channel_GPIO_Port, S1_channel_Pin, (selectedCell & 0b0010) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(S2_channel_GPIO_Port, S2_channel_Pin, (selectedCell & 0b0100) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(S3_channel_GPIO_Port, S3_channel_Pin, (selectedCell & 0b1000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  if (hcan->Instance == CAN1)
+  {
+    HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeaderFIFO0, dataFIFO0);
+
+    if(rxHeaderFIFO0.StdId == 0x301) {
+      summaryRefreshFlag = 1;
+    }
+
+    if(rxHeaderFIFO0.StdId == 0x302) {
+      segmentRefreshFlag |= (0b1 < dataFIFO0[0]);
+    }
+
+    // TODO Charging CAN message
+  }
+
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
+            user file
+   */
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	memcpy(rawTempReadings + MUX_BANK_COUNT*selectedCell, (const void *)tempBuffer, MUX_BANK_COUNT);
+	memcpy(rawTempReadings + MUX_BANK_COUNT*selectedCell, (const void *)tempBuffer, sizeof(tempBuffer));
 
-	dataReadyForCell = selectedCell;
-	selectedCell = selectedCell % CELLS_PER_MUX;
+	selectedCell = (selectedCell + 1) % CELLS_PER_MUX;
 	writeMuxSelector();
 
 	dataReady = 1;
 }
 
 void calculateTemperatures(uint8_t cellBank) {
-	for(uint8_t i = cellBank*CELLS_PER_MUX; i < ((cellBank+1)*CELLS_PER_MUX); i++) {
-		float voltage = 3.3f * rawTempReadings[i] / 4096.0f;
-		temperatures[i] = VoltageToTempC(voltage); // Implement filter here?
+  badTempReadings[cellBank] = 0;
+	for(uint16_t i = cellBank*CELLS_PER_MUX; i < ((cellBank+1)*CELLS_PER_MUX); i++) {
+		if (temperature < CELL_GROUND_SHORT_THRESHOLD) {
+		  badTempReadings[cellBank]++;
+		} else if (temperature > CELL_POWER_SHORT_THRESHOLD) {
+		  badTempReadings[cellBank]++;
+		} else {
+      float voltage = ADC_UNITS_TO_VOLTAGE(rawTempReadings[i]);
+      float temperature = voltageToTempC(voltage);
+      temperatures[i] = LOW_PASS_FILTER(temperature, temperatures[i]);
+		}
 	}
 }
 
 void checkAndTriggerFaults() {
+  float minTemperature = CELL_DISCHARGE_MIN_TEMP_C;
+  float maxTemperature = CELL_DISCHARGE_MAX_TEMP_C;
+  if (isCharging) {
+    minTemperature = CELL_CHARGE_MIN_TEMP_C;
+    maxTemperature = CELL_CHARGE_MAX_TEMP_C;
+  }
+
 	uint8_t badCellCount = 0;
 	for (uint8_t i = 0; i < (MUX_BANK_COUNT * CELLS_PER_MUX); i++) {
-		if (temperatures[i] < CELL_TEMP_MIN) {
+		if (temperatures[i] < minTemperature) {
 			badCellCount++;
-		} else if (temperatures[i] > CELL_TEMP_MAX) {
+		} else if (temperatures[i] > maxTemperature) {
 			badCellCount++;
 		}
 	}
 
-	HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin,
-			(badCellCount > MAX_BAD_CELLS) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+	uint8_t badReadings = 0;
+	for (uint8_t i = 0; i < CELLS_PER_MUX; i++) {
+	  badReadings += badTempReadings[i];
+	}
+
+	setFault((badCellCount > MAX_BAD_CELLS)
+	      || (badReadings > MAX_BAD_READINGS));
+}
+
+static void writeSegmentTemperatureSummaryOverCan() {
+  float minTemp = temperatures[0], maxTemp = temperatures[0];
+  double tempSum = (double)temperatures[0];
+
+  for(uint16_t )
 }
 
 static void writeSegmentTemperaturesOverCan() {
   uint8_t segmentsToRefresh = segmentRefreshFlag;
   for (uint8_t segment = 0; segment < SEGMENT_COUNT; segment++) {
-    //if ((segmentsToRefresh >> segment) & 0b1) continue;
+    if ((segmentsToRefresh >> segment) & 0b1) continue;
 
     CanSegmentTempData_t tempData = { 0 };
 
@@ -162,7 +232,9 @@ static void writeSegmentTemperaturesOverCan() {
 
     for(uint8_t msg_i = 0; msg_i < CAN_MESSAGES_PER_SEGMENT; msg_i++) {
       uint32_t mailbox;
-      uint8_t msgId = TEMP_SEGMENT_SYNC_CAN_ID_BASE + TEMP_SEGMENT_SYNC_CAN_ID_OFFSET*msg_i;
+      uint32_t msgId = TEMP_SEGMENT_SYNC_CAN_ID_BASE
+                     + TEMP_SEGMENT_SYNC_CAN_ID_SEGMENT_OFFSET*segment
+                     + TEMP_SEGMENT_SYNC_CAN_ID_MSG_OFFSET*msg_i;
 
       CAN_TxHeaderTypeDef txHeader = {
         .StdId = msgId, // Need to calculate ID for data
@@ -176,25 +248,30 @@ static void writeSegmentTemperaturesOverCan() {
         Error_Handler();
       }
 
-      while(HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+      uint32_t txPendingStart = HAL_GetTick();
+      while(HAL_CAN_IsTxMessagePending(&hcan1, mailbox)) {
+        if (HAL_GetTick() - txPendingStart > 10) { // 1-millisecond timeout per message
+          Error_Handler();
+        }
+      }
     }
 
   }
 }
 
-static float VoltageToTempC(float volts)
+static float voltageToTempC(float volts)
 {
   int n = sizeof(enepaq_table) / sizeof(enepaq_table[0]);
 
-  if (volts >= enepaq_table[0].volts) return enepaq_table[0].temp_c;
-  if (volts <= enepaq_table[n - 1].volts) return enepaq_table[n - 1].temp_c;
+  if (volts > enepaq_table[0].volts) return enepaq_table[0].temp_c;
+  if (volts < enepaq_table[n - 1].volts) return enepaq_table[n - 1].temp_c;
 
   for (int i = 0; i < n - 1; i++)
   {
     float v1 = enepaq_table[i].volts;
     float v2 = enepaq_table[i + 1].volts;
 
-    if ((volts <= v1) && (volts >= v2))
+    if ((v2 <= volts) && (volts <= v1))
     {
       float t1 = enepaq_table[i].temp_c;
       float t2 = enepaq_table[i + 1].temp_c;
@@ -203,15 +280,7 @@ static float VoltageToTempC(float volts)
     }
   }
 
-  return -999.0f;
-}
-
-void setFault(uint8_t flag) {
-  if (flag) {
-    HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_SET);
-  } else {
-    HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_RESET);
-  }
+  return CELL_OPEN_CIRCUIT;
 }
 /* USER CODE END 0 */
 
@@ -233,8 +302,9 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   selectedCell = 0;
-  memset((void *) tempBuffer, 0, sizeof(*tempBuffer)*MUX_BANK_COUNT);
-  memset((void *) rawTempReadings, 0, sizeof(*rawTempReadings)*MUX_BANK_COUNT*CELLS_PER_MUX);
+  memset((void *) tempBuffer, 0, sizeof(tempBuffer));
+  memset((void *) rawTempReadings, 0, sizeof(rawTempReadings));
+  memset((void *) badTempReadings, 0, sizeof(badTempReadings));
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -252,34 +322,44 @@ int main(void)
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
 
-  if (HAL_ADC_Start_DMA (&hadc1, (uint32_t*) rawTempReadings, MUX_BANK_COUNT) != HAL_OK ||
-      HAL_TIM_Base_Start(&htim2) != HAL_OK ||
-      HAL_CAN_Start(&hcan1) != HAL_OK)
-  {
+  if (HAL_ADC_Start_DMA (&hadc1, (uint32_t*) tempBuffer, MUX_BANK_COUNT) != HAL_OK) {
     Error_Handler();
   }
+  if (HAL_TIM_Base_Start(&htim2) != HAL_OK) {
+    Error_Handler();
+  }
+
+  if (HAL_CAN_Start(&hcan1) != HAL_OK) {
+    Error_Handler();
+  }
+
+  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  TS_ECU_ChargingStateTrigFilterConfig();
+  TS_ECU_SYNC_RX1_FilterConfig();
+  TS_ECU_SYNC_RX2_FilterConfig();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_Delay(150);
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 	  if (dataReady) {
-		  uint8_t bank = selectedCell - 1;
+		  int bank = (int)selectedCell - 1;
 		  if (bank < 0) bank += CELLS_PER_MUX;
 
-		  calculateTemperatures(bank);
+		  calculateTemperatures((uint8_t)bank);
 		  checkAndTriggerFaults();
 
 		  dataReady = 0;
 	  }
 
-	  //if (segmentRefreshFlag != 0) {
+	  if (segmentRefreshFlag != 0) {
 	    writeSegmentTemperaturesOverCan();
-	  //}
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -339,7 +419,20 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void setFault(uint8_t flag) {
+  if (flag) {
+    HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_SET);
+  } else {
+    HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_RESET);
+  }
+}
 
+void writeMuxSelector() {
+  HAL_GPIO_WritePin(S0_channel_GPIO_Port, S0_channel_Pin, (selectedCell & 0b0001) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(S1_channel_GPIO_Port, S1_channel_Pin, (selectedCell & 0b0010) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(S2_channel_GPIO_Port, S2_channel_Pin, (selectedCell & 0b0100) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(S3_channel_GPIO_Port, S3_channel_Pin, (selectedCell & 0b1000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
 /* USER CODE END 4 */
 
 /**
