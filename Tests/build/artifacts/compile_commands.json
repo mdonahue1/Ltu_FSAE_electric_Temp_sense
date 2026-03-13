@@ -1,0 +1,26 @@
+[
+  {
+    "directory": "/home/kamiljarosz/Workspace/temp_sense_test/Tests",
+    "file": "test/test_temp_sense.c",
+    "command": "gcc -Wall -Werror -I\"build/test/mocks/test_temp_sense\" -I\"../Core/Inc\" -I\"build/vendor/unity/src\" -I\"build/vendor/cmock/src\" -D\"TEST\" -D\"UNITY_SUPPORT_TEST_CASES\" -D\"UNITY_SUPPORT_VARIADIC_MACROS\" -D\"UNITY_USE_COMMAND_LINE_ARGS\" -DGNU_COMPILER -g -c \"test/test_temp_sense.c\" -o \"build/test/out/test_temp_sense/test_temp_sense.o\" -MMD -MF \"build/test/dependencies/test_temp_sense.d\"",
+    "output": "build/test/out/test_temp_sense/test_temp_sense.o"
+  },
+  {
+    "directory": "/home/kamiljarosz/Workspace/temp_sense_test/Tests",
+    "file": "build/test/runners/test_temp_sense_runner.c",
+    "command": "gcc -Wall -Werror -I\"build/test/mocks/test_temp_sense\" -I\"../Core/Inc\" -I\"build/vendor/unity/src\" -I\"build/vendor/cmock/src\" -D\"TEST\" -D\"UNITY_SUPPORT_TEST_CASES\" -D\"UNITY_SUPPORT_VARIADIC_MACROS\" -D\"UNITY_USE_COMMAND_LINE_ARGS\" -DGNU_COMPILER -g -c \"build/test/runners/test_temp_sense_runner.c\" -o \"build/test/out/test_temp_sense/test_temp_sense_runner.o\" -MMD -MF \"build/test/dependencies/test_temp_sense_runner.d\"",
+    "output": "build/test/out/test_temp_sense/test_temp_sense_runner.o"
+  },
+  {
+    "directory": "/home/kamiljarosz/Workspace/temp_sense_test/Tests",
+    "file": "build/vendor/unity/src/unity.c",
+    "command": "gcc -Wall -Werror -I\"build/vendor/unity/src\" -D\"TEST\" -D\"UNITY_SUPPORT_TEST_CASES\" -D\"UNITY_SUPPORT_VARIADIC_MACROS\" -D\"UNITY_USE_COMMAND_LINE_ARGS\" -DGNU_COMPILER -g -c \"build/vendor/unity/src/unity.c\" -o \"build/test/out/test_temp_sense/unity.o\" -MMD -MF \"build/test/dependencies/unity.d\"",
+    "output": "build/test/out/test_temp_sense/unity.o"
+  },
+  {
+    "directory": "/home/kamiljarosz/Workspace/temp_sense_test/Tests",
+    "file": "../Core/Src/temp_sense.c",
+    "command": "gcc -Wall -Werror -I\"build/test/mocks/test_temp_sense\" -I\"../Core/Inc\" -I\"build/vendor/unity/src\" -I\"build/vendor/cmock/src\" -D\"TEST\" -D\"UNITY_SUPPORT_TEST_CASES\" -D\"UNITY_SUPPORT_VARIADIC_MACROS\" -D\"UNITY_USE_COMMAND_LINE_ARGS\" -DGNU_COMPILER -g -c \"../Core/Src/temp_sense.c\" -o \"build/test/out/test_temp_sense/temp_sense.o\" -MMD -MF \"build/test/dependencies/temp_sense.d\"",
+    "output": "build/test/out/test_temp_sense/temp_sense.o"
+  }
+]

@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -211,7 +211,6 @@ static void writeSegmentTemperatureSummaryOverCan() {
   float minTemp = temperatures[0], maxTemp = temperatures[0];
   double tempSum = (double)temperatures[0];
 
-  for(uint16_t )
 }
 
 static void writeSegmentTemperaturesOverCan() {

@@ -1,0 +1,360 @@
+---
+:source:
+  :file: test/test_temp_sense.c
+  :dirname: test
+  :basename: test_temp_sense.c
+:successes:
+- :test: test_initializeTempSense_selectFirstCellInMuxBank
+  :line: 70
+  :message: ''
+  :unity_test_time: 0
+- :test: test_updateRawTemperatures_incrementsSelectedCell(1, 1)
+  :line: 77
+  :message: ''
+  :unity_test_time: 0
+- :test: test_updateRawTemperatures_incrementsSelectedCell(11, 11)
+  :line: 77
+  :message: ''
+  :unity_test_time: 0
+- :test: test_updateRawTemperatures_incrementsSelectedCell(12, 0)
+  :line: 77
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(0, 0)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(0, 11)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(0, 1)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(9, 0)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(9, 11)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(9, 1)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(1, 0)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(1, 11)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(1, 1)
+  :line: 88
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(0,
+    0)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(0,
+    11)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(0,
+    1)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(9,
+    0)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(9,
+    11)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(9,
+    1)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(1,
+    0)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(1,
+    11)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(1,
+    1)
+  :line: 107
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(0,
+    0)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(0,
+    11)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(0,
+    1)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(9,
+    0)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(9,
+    11)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(9,
+    1)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(1,
+    0)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(1,
+    11)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThreshold(1,
+    1)
+  :line: 126
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(0, 0)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(0, 11)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(0, 1)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(9, 0)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(9, 11)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(9, 1)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(1, 0)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(1, 11)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(1, 1)
+  :line: 153
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(0,
+    0)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(0,
+    11)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(0,
+    1)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(9,
+    0)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(9,
+    11)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(9,
+    1)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(1,
+    0)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(1,
+    11)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(1,
+    1)
+  :line: 172
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_doesNotSetFaultWhenTemperaturesAreWithinOperatingConditions
+  :line: 190
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(0,
+    0)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(0,
+    11)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(0,
+    1)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(9,
+    0)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(9,
+    11)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(9,
+    1)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(1,
+    0)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(1,
+    11)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(1,
+    1)
+  :line: 205
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOverCanAfterReceivingSyncMessage(1,
+    0x312)
+  :line: 236
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOverCanAfterReceivingSyncMessage(2,
+    0x322)
+  :line: 236
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOverCanAfterReceivingSyncMessage(3,
+    0x332)
+  :line: 236
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOverCanAfterReceivingSyncMessage(4,
+    0x342)
+  :line: 236
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOverCanAfterReceivingSyncMessage(5,
+    0x352)
+  :line: 236
+  :message: ''
+  :unity_test_time: 0
+- :test: test_handleCanMessage_shouldNotSendSegmentSyncMessagesFromHandler(CAN_SYNC_SEGMENT_CAN_ID)
+  :line: 256
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOnlyOnceUntilNextSyncMessage(1, 0x312)
+  :line: 269
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOnlyOnceUntilNextSyncMessage(2, 0x322)
+  :line: 269
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOnlyOnceUntilNextSyncMessage(3, 0x332)
+  :line: 269
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOnlyOnceUntilNextSyncMessage(4, 0x342)
+  :line: 269
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldSendSegmentTemperaturesOnlyOnceUntilNextSyncMessage(5, 0x352)
+  :line: 269
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldCorrectlyMapSegmentTemperaturesToDegreesC(1, 0x312)
+  :line: 286
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldCorrectlyMapSegmentTemperaturesToDegreesC(2, 0x322)
+  :line: 286
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldCorrectlyMapSegmentTemperaturesToDegreesC(3, 0x332)
+  :line: 286
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldCorrectlyMapSegmentTemperaturesToDegreesC(4, 0x342)
+  :line: 286
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_shouldCorrectlyMapSegmentTemperaturesToDegreesC(5, 0x352)
+  :line: 286
+  :message: ''
+  :unity_test_time: 0
+- :test: test_loop_sendsTemperatureSummaryWhenSyncMessageReceived
+  :line: 332
+  :message: ''
+  :unity_test_time: 0
+:failures: []
+:ignores: []
+:counts:
+  :total: 76
+  :passed: 76
+  :failed: 0
+  :ignored: 0
+:stdout: []
+:time: 0.0030622039921581745
