@@ -64,10 +64,17 @@ void loop() {
 
 static void checkForFaults() {
   FaultLine_e faults = 0;
+  uint8_t badCellReadings = 0;
   for(uint8_t cell = 0; cell < CELLS_PER_MUX; cell++) 
   {
     for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
       uint32_t temperature_AdcUnit = rawTemperatureReadings[cell][i];
+
+      if (temperature_AdcUnit <= CELL_TEMP_SHORT_TO_GROUND_THRESHOLD_ADC_UNITS ||
+          temperature_AdcUnit >= CELL_TEMP_OPEN_CIRCUIT_THRESHOLD_ADC_UNITS) {
+        badCellReadings++;
+        continue;
+      }
 
       if (temperature_AdcUnit <= VOLTAGE_TO_ADC_UNITS(CELL_DISCHARGE_MAX_TEMP_VOLTAGE)) {
         faults |= DISCHARGE_TEMP_FAULT;
@@ -81,6 +88,9 @@ static void checkForFaults() {
         faults |= CHARGE_TEMP_FAULT;
       }
     }
+  }
+  if (badCellReadings > CELL_TEMP_MINIMUM_VALID_READINGS) {
+    faults |= CHARGE_TEMP_FAULT | DISCHARGE_TEMP_FAULT;
   }
   toggleFaultFromFlag(DISCHARGE_TEMP_FAULT, faults);
   toggleFaultFromFlag(CHARGE_TEMP_FAULT, faults);

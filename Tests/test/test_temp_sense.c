@@ -266,6 +266,65 @@ void test_loop_shouldClearChargeFaultWhenTemperatureFallsBelowChargeThreshold(ui
   TEST_ASSERT_FALSE(faults & CHARGE_TEMP_FAULT);
 }
 
+TEST_MATRIX([0, 9, 1], [0, 11, 1])
+void test_loop_shouldNotTriggerFaultWhenTemperatureReadingIsShortedToGround(uint8_t muxBank, uint8_t cell) {
+  uint32_t rawTempReadings[MUX_BANK_COUNT];
+  for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
+    rawTempReadings[i] = VOLTAGE_TO_ADC_UNITS(CELL_TEMP_ROOM_TEMPERATURE_VOLTAGE);
+  }
+
+  for(uint8_t i = 0; i < CELLS_PER_MUX; i++) {
+    if (i == cell) {
+      rawTempReadings[muxBank] = CELL_TEMP_SHORT_TO_GROUND_THRESHOLD_ADC_UNITS;
+    }
+    update_raw_temperatures(rawTempReadings);
+    loop();
+  }
+
+  TEST_ASSERT_FALSE(faults);
+}
+
+TEST_MATRIX([0, 9, 1], [0, 11, 1])
+void test_loop_shouldNotTriggerFaultWhenTemperatureReadingIsOpenCircuited(uint8_t muxBank, uint8_t cell) {
+  uint32_t rawTempReadings[MUX_BANK_COUNT];
+  for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
+    rawTempReadings[i] = VOLTAGE_TO_ADC_UNITS(CELL_TEMP_ROOM_TEMPERATURE_VOLTAGE);
+  }
+
+  for(uint8_t i = 0; i < CELLS_PER_MUX; i++) {
+    if (i == cell) {
+      rawTempReadings[muxBank] = CELL_TEMP_OPEN_CIRCUIT_THRESHOLD_ADC_UNITS;
+    }
+    update_raw_temperatures(rawTempReadings);
+    loop();
+  }
+
+  TEST_ASSERT_FALSE(faults);
+}
+
+void test_loop_shouldTriggerChargeAndDischargeFaultWhenLessThan60PercentOfTempReadingsAreValid() {
+  const uint8_t invalidReadingCount = (uint8_t)(ceilf(.6*12)) + 1;
+
+  uint32_t rawTempReadings[MUX_BANK_COUNT];
+  for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
+    if (i < invalidReadingCount) {
+      rawTempReadings[i] = i % 2 == 0 
+        ? CELL_TEMP_OPEN_CIRCUIT_THRESHOLD_ADC_UNITS
+        : CELL_TEMP_SHORT_TO_GROUND_THRESHOLD_ADC_UNITS;
+    } else {
+      rawTempReadings[i] = VOLTAGE_TO_ADC_UNITS(CELL_TEMP_ROOM_TEMPERATURE_VOLTAGE);
+    }
+  }
+
+  for(uint8_t i = 0; i < CELLS_PER_MUX; i++) {
+    update_raw_temperatures(rawTempReadings);
+    loop();
+  }
+
+  TEST_ASSERT_TRUE(faults & DISCHARGE_TEMP_FAULT);
+  TEST_ASSERT_TRUE(faults & CHARGE_TEMP_FAULT);
+}
+
 TEST_CASE(1, 0x312)
 TEST_CASE(2, 0x322)
 TEST_CASE(3, 0x332)
