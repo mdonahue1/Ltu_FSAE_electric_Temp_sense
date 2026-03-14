@@ -32,7 +32,7 @@
 
 #define CAN_SYNC_SUMMARY_CAN_ID                       0x301
 #define CAN_RESP_SUMMARY_CAN_ID                       0x311
-#define CAN_RESP_SUMMARY_DLC                          3
+#define CAN_RESP_SUMMARY_DLC                          4
 
 #define CAN_SYNC_SEGMENT_CAN_ID                       0x302
 #define CAN_RESP_SEGMENT_CAN_ID_BASE                  0x312

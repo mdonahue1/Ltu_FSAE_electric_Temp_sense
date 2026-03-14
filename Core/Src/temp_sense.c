@@ -25,6 +25,7 @@ static void sendTempSummaryOverCan();
 static void sendSegmentTempsOverCan();
 
 static void toggleFaultFromFlag(FaultLine_e faultLine, FaultLine_e flag);
+static uint8_t isValidTemperature_AdcUnits(uint32_t tempAdcUnits);
 static float voltageToTempC(float volts);
 
 void initialize_temp_sense(TempSenseInit_t init) {
@@ -70,8 +71,7 @@ static void checkForFaults() {
     for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
       uint32_t temperature_AdcUnit = rawTemperatureReadings[cell][i];
 
-      if (temperature_AdcUnit <= CELL_TEMP_SHORT_TO_GROUND_THRESHOLD_ADC_UNITS ||
-          temperature_AdcUnit >= CELL_TEMP_OPEN_CIRCUIT_THRESHOLD_ADC_UNITS) {
+      if (isValidTemperature_AdcUnits(temperature_AdcUnit)) {
         badCellReadings++;
         continue;
       }
@@ -103,10 +103,17 @@ static void sendTempSummaryOverCan() {
     uint32_t highestTemp_AdcUnits = UINT32_MAX;
     uint32_t lowestTemp_AdcUnits = 0;
     uint64_t tempSum_AdcUnits = 0;
+    uint8_t badCellReadings = 0;
 
     for(uint8_t cell = 0; cell < CELLS_PER_MUX; cell++) {
       for(uint8_t mux = 0; mux < MUX_BANK_COUNT; mux++) {
         uint32_t temperature_AdcUnits = rawTemperatureReadings[cell][mux];
+
+        if (isValidTemperature_AdcUnits(temperature_AdcUnits)) {
+          badCellReadings++;
+          continue;
+        }
+
         tempSum_AdcUnits += rawTemperatureReadings[cell][mux];
 
         if (temperature_AdcUnits < highestTemp_AdcUnits) {
@@ -119,13 +126,14 @@ static void sendTempSummaryOverCan() {
       }
     }
 
-    tempSum_AdcUnits = tempSum_AdcUnits / (uint64_t)(CELLS_PER_MUX * MUX_BANK_COUNT);
+    tempSum_AdcUnits = tempSum_AdcUnits / (uint64_t)(CELLS_PER_MUX * MUX_BANK_COUNT - badCellReadings);
 
     CanData_t data = {
       .data8 = {
         (uint8_t)voltageToTempC(ADC_UNITS_TO_VOLTAGE(highestTemp_AdcUnits)) + CAN_TEMP_C_OFFSET,
         (uint8_t)voltageToTempC(ADC_UNITS_TO_VOLTAGE(lowestTemp_AdcUnits)) + CAN_TEMP_C_OFFSET,
         (uint8_t)voltageToTempC(ADC_UNITS_TO_VOLTAGE(tempSum_AdcUnits)) + CAN_TEMP_C_OFFSET,
+        badCellReadings
       }
     };
 
@@ -134,8 +142,6 @@ static void sendTempSummaryOverCan() {
 }
 
 static void sendSegmentTempsOverCan() {
-  if (syncSegments < 2) return;
-
   for(uint8_t segment = 1; segment <= SEGMENT_COUNT; segment++) {
     if ((syncSegments >> segment) & 0x1) 
     {
@@ -164,6 +170,11 @@ static void toggleFaultFromFlag(FaultLine_e faultLine, FaultLine_e flag) {
   } else {
     tempSense.clearFault(faultLine);
   }
+}
+
+static uint8_t isValidTemperature_AdcUnits(uint32_t temperature_AdcUnits) {
+  return temperature_AdcUnits <= CELL_TEMP_SHORT_TO_GROUND_THRESHOLD_ADC_UNITS ||
+         temperature_AdcUnits >= CELL_TEMP_OPEN_CIRCUIT_THRESHOLD_ADC_UNITS;
 }
 
 static float voltageToTempC(float volts)

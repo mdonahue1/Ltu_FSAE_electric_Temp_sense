@@ -432,7 +432,7 @@ void test_loop_sendsTemperatureSummaryWhenSyncMessageReceived() {
     { 2.5f, 2.135f },   
     { 12.5f, 2.015f },   
     { 20.0f, 1.92f },    
-    { 32.5f, 1.77f },    
+    { 999.9f, 3.3f },    
     { 10.0f, 2.05f },    
     { 60.0f, 1.51f },    
     { 65.0f, 1.48f },    
@@ -456,12 +456,13 @@ void test_loop_sendsTemperatureSummaryWhenSyncMessageReceived() {
 
   TEST_ASSERT_EQUAL(1, receivedCanMessageCount);
 
-  uint8_t expectedDataLength = 3;
+  uint8_t expectedDataLength = 4;
   CanData_t expectedData = {
     .data8 = {
       105, // Highest temp (60 C)
       40,  // Lowest Temp (0 C)
-      68   // Average Temp (28 C)
+      67,  // Average Temp (27 C)
+      12   // Bad Cell readings
     }
   };
   TEST_ASSERT_EQUAL(expectedDataLength, canMessages[0].dlc);
@@ -469,6 +470,4 @@ void test_loop_sendsTemperatureSummaryWhenSyncMessageReceived() {
 }
 
 // TODO Implement low pass filter for temperature readings
-// TODO Trigger faults on lower threshold for temperatures
-// TODO Send summary message
 // TODO Discard bad readings from lowest/highest/avg temp readings in summary
