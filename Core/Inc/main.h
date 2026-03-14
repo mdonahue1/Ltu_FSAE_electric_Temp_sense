@@ -57,20 +57,42 @@ void setFault(uint8_t flag);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define S3_channel_Pin GPIO_PIN_10
-#define S3_channel_GPIO_Port GPIOB
+#define MUX_5_Pin GPIO_PIN_0
+#define MUX_5_GPIO_Port GPIOC
+#define MUX_6_Pin GPIO_PIN_1
+#define MUX_6_GPIO_Port GPIOC
+#define MUX_7_Pin GPIO_PIN_2
+#define MUX_7_GPIO_Port GPIOC
+#define MUX_8_Pin GPIO_PIN_3
+#define MUX_8_GPIO_Port GPIOC
+#define MUX_9_Pin GPIO_PIN_0
+#define MUX_9_GPIO_Port GPIOA
+#define S0_Pin GPIO_PIN_1
+#define S0_GPIO_Port GPIOA
+#define S1_Pin GPIO_PIN_2
+#define S1_GPIO_Port GPIOA
+#define S2_Pin GPIO_PIN_3
+#define S2_GPIO_Port GPIOA
+#define S3_Pin GPIO_PIN_4
+#define S3_GPIO_Port GPIOA
+#define MUX_4_Pin GPIO_PIN_5
+#define MUX_4_GPIO_Port GPIOA
+#define MUX_3_Pin GPIO_PIN_6
+#define MUX_3_GPIO_Port GPIOA
+#define MUX_2_Pin GPIO_PIN_7
+#define MUX_2_GPIO_Port GPIOA
+#define MUX_1_Pin GPIO_PIN_4
+#define MUX_1_GPIO_Port GPIOC
+#define MUX_0_Pin GPIO_PIN_5
+#define MUX_0_GPIO_Port GPIOC
 #define Orange_LED_Pin GPIO_PIN_8
 #define Orange_LED_GPIO_Port GPIOC
 #define Green_LED_Pin GPIO_PIN_9
 #define Green_LED_GPIO_Port GPIOC
-#define Fault_line_Pin GPIO_PIN_8
-#define Fault_line_GPIO_Port GPIOA
-#define S0_channel_Pin GPIO_PIN_3
-#define S0_channel_GPIO_Port GPIOB
-#define S2_channel_Pin GPIO_PIN_4
-#define S2_channel_GPIO_Port GPIOB
-#define S1_channel_Pin GPIO_PIN_5
-#define S1_channel_GPIO_Port GPIOB
+#define Charge_Fault_Pin GPIO_PIN_3
+#define Charge_Fault_GPIO_Port GPIOB
+#define Discharge_Fault_Pin GPIO_PIN_4
+#define Discharge_Fault_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -60,14 +60,14 @@ typedef struct {
 
 typedef struct {
   void (*selectMuxCell)(uint8_t bank);
-  Result_t (*sendCanMessage)(uint32_t canStdId, CanData_t data, uint8_t dlc);
+  Result_t (*sendCanMessage)(uint32_t canStdId, CanData_t data, uint32_t dlc);
   void (*setFault)(FaultLine_e faultLine);
   void (*clearFault)(FaultLine_e faultLine);
 } TempSenseInit_t;
 
 void initialize_temp_sense(TempSenseInit_t init);
 void update_raw_temperatures(uint32_t rawTempData[MUX_BANK_COUNT]);
-void handle_can_message(uint32_t canStdId, CanData_t data, uint8_t dlc);
+void handle_can_message(uint32_t canStdId, CanData_t data, uint32_t dlc);
 void loop();
 
 #endif // _INC_TEMP_SENSE_H_

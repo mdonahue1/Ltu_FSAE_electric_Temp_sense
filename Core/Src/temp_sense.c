@@ -49,7 +49,7 @@ void update_raw_temperatures(uint32_t rawTempData[MUX_BANK_COUNT]) {
   tempSense.selectMuxCell(selectedCell);
 }
 
-void handle_can_message(uint32_t canStdId, CanData_t canData, uint8_t dlc) {
+void handle_can_message(uint32_t canStdId, CanData_t canData, uint32_t dlc) {
   if (canStdId == CAN_SYNC_SUMMARY_CAN_ID) {
     syncSegments |= 0x1;
   } else {

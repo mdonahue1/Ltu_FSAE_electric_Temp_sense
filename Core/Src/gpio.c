@@ -51,20 +51,20 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, S3_channel_Pin|S0_channel_Pin|S2_channel_Pin|S1_channel_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, S0_Pin|S1_Pin|S2_Pin|S3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, Orange_LED_Pin|Green_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Fault_line_GPIO_Port, Fault_line_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Charge_Fault_Pin|Discharge_Fault_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : S3_channel_Pin S0_channel_Pin S2_channel_Pin S1_channel_Pin */
-  GPIO_InitStruct.Pin = S3_channel_Pin|S0_channel_Pin|S2_channel_Pin|S1_channel_Pin;
+  /*Configure GPIO pins : S0_Pin S1_Pin S2_Pin S3_Pin */
+  GPIO_InitStruct.Pin = S0_Pin|S1_Pin|S2_Pin|S3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Orange_LED_Pin Green_LED_Pin */
   GPIO_InitStruct.Pin = Orange_LED_Pin|Green_LED_Pin;
@@ -73,12 +73,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : Fault_line_Pin */
-  GPIO_InitStruct.Pin = Fault_line_Pin;
+  /*Configure GPIO pins : Charge_Fault_Pin Discharge_Fault_Pin */
+  GPIO_InitStruct.Pin = Charge_Fault_Pin|Discharge_Fault_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(Fault_line_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 
