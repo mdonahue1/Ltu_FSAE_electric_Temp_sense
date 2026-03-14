@@ -85,7 +85,7 @@ void test_updateRawTemperatures_incrementsSelectedCell(uint8_t invocationCount, 
 }
 
 TEST_MATRIX([0, 9, 1], [0, 11, 1])
-void test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(uint8_t muxBank, uint8_t cell)
+void test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeMaximum(uint8_t muxBank, uint8_t cell)
 {
   uint32_t rawTempReadings[MUX_BANK_COUNT];
   for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
@@ -104,7 +104,7 @@ void test_loop_setsDischargeFaultWhenTemperaturesAboveDischargeThreshold(uint8_t
 }
 
 TEST_MATRIX([0, 9, 1], [0, 11, 1])
-void test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThreshold(uint8_t muxBank, uint8_t cell)
+void test_loop_doesNotTriggerDischargeIfTemperaturesAreWithinOperationalRange(uint8_t muxBank, uint8_t cell)
 {
   uint32_t rawTempReadings[MUX_BANK_COUNT];
   for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
@@ -120,6 +120,25 @@ void test_loop_doesNotTriggerDischargeIfTemperaturesAreJustBelowDischargeThresho
   }
 
   TEST_ASSERT_FALSE(faults & DISCHARGE_TEMP_FAULT);
+}
+
+TEST_MATRIX([0, 9, 1], [0, 11, 1])
+void test_loop_setsDischargeFaultWhenTemperaturesBelowDischargeMinimum(uint8_t muxBank, uint8_t cell)
+{
+  uint32_t rawTempReadings[MUX_BANK_COUNT];
+  for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
+    rawTempReadings[i] = VOLTAGE_TO_ADC_UNITS(CELL_TEMP_ROOM_TEMPERATURE_VOLTAGE);
+  }
+
+  for(uint8_t i = 0; i < CELLS_PER_MUX; i++) {
+    if (i == cell) {
+      rawTempReadings[muxBank] = VOLTAGE_TO_ADC_UNITS(CELL_DISCHARGE_MIN_TEMP_VOLTAGE);
+    }
+    update_raw_temperatures(rawTempReadings);
+    loop();
+  }
+
+  TEST_ASSERT_TRUE(faults & DISCHARGE_TEMP_FAULT);
 }
 
 TEST_MATRIX([0, 9, 1], [0, 11, 1])
@@ -150,7 +169,7 @@ void test_loop_shouldClearDischargeFaultWhenTemperatureFallsBelowDischargeThresh
 }
 
 TEST_MATRIX([0, 9, 1], [0, 11, 1])
-void test_loop_setsChargeFaultWhenTemperaturesAboveChargeThreshold(uint8_t muxBank, uint8_t cell)
+void test_loop_setsChargeFaultWhenTemperaturesAboveChargeMaximum(uint8_t muxBank, uint8_t cell)
 {
   uint32_t rawTempReadings[MUX_BANK_COUNT];
   for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
@@ -185,6 +204,25 @@ void test_loop_doesNotTriggerChargeIfTemperaturesAreJustBelowChargeThreshold(uin
   }
 
   TEST_ASSERT_FALSE(faults & CHARGE_TEMP_FAULT);
+}
+
+TEST_MATRIX([0, 9, 1], [0, 11, 1])
+void test_loop_setsChargeFaultWhenTemperaturesBelowChargeMinimum(uint8_t muxBank, uint8_t cell)
+{
+  uint32_t rawTempReadings[MUX_BANK_COUNT];
+  for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
+    rawTempReadings[i] = VOLTAGE_TO_ADC_UNITS(CELL_TEMP_ROOM_TEMPERATURE_VOLTAGE);
+  }
+
+  for(uint8_t i = 0; i < CELLS_PER_MUX; i++) {
+    if (i == cell) {
+      rawTempReadings[muxBank] = VOLTAGE_TO_ADC_UNITS(CELL_CHARGE_MIN_TEMP_VOLTAGE);
+    }
+    update_raw_temperatures(rawTempReadings);
+    loop();
+  }
+
+  TEST_ASSERT_TRUE(faults & CHARGE_TEMP_FAULT);
 }
 
 void test_loop_doesNotSetFaultWhenTemperaturesAreWithinOperatingConditions() {

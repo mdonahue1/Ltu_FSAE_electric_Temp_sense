@@ -20,6 +20,10 @@ static uint8_t selectedCell;
 static uint32_t rawTemperatureReadings[CELLS_PER_MUX][MUX_BANK_COUNT];
 static uint8_t syncSegments;
 
+static void checkForFaults();
+static void sendTempSummaryOverCan();
+static void sendSegmentTempsOverCan();
+
 static void toggleFaultFromFlag(FaultLine_e faultLine, FaultLine_e flag);
 static float voltageToTempC(float volts);
 
@@ -53,21 +57,36 @@ void handle_can_message(uint32_t canStdId, CanData_t canData, uint8_t dlc) {
 }
 
 void loop() {
+  checkForFaults();
+  sendTempSummaryOverCan();
+  sendSegmentTempsOverCan();
+}
+
+static void checkForFaults() {
   FaultLine_e faults = 0;
   for(uint8_t cell = 0; cell < CELLS_PER_MUX; cell++) 
   {
     for(uint8_t i = 0; i < MUX_BANK_COUNT; i++) {
-      if (rawTemperatureReadings[cell][i] <= VOLTAGE_TO_ADC_UNITS(CELL_DISCHARGE_MAX_TEMP_VOLTAGE)) {
+      uint32_t temperature_AdcUnit = rawTemperatureReadings[cell][i];
+
+      if (temperature_AdcUnit <= VOLTAGE_TO_ADC_UNITS(CELL_DISCHARGE_MAX_TEMP_VOLTAGE)) {
+        faults |= DISCHARGE_TEMP_FAULT;
+      } else if (temperature_AdcUnit >= VOLTAGE_TO_ADC_UNITS(CELL_DISCHARGE_MIN_TEMP_VOLTAGE)) {
         faults |= DISCHARGE_TEMP_FAULT;
       }
-      if (rawTemperatureReadings[cell][i] <= VOLTAGE_TO_ADC_UNITS(CELL_CHARGE_MAX_TEMP_VOLTAGE)) {
+
+      if (temperature_AdcUnit <= VOLTAGE_TO_ADC_UNITS(CELL_CHARGE_MAX_TEMP_VOLTAGE)) {
+        faults |= CHARGE_TEMP_FAULT;
+      } else if (temperature_AdcUnit >= VOLTAGE_TO_ADC_UNITS(CELL_CHARGE_MIN_TEMP_VOLTAGE)) {
         faults |= CHARGE_TEMP_FAULT;
       }
     }
   }
   toggleFaultFromFlag(DISCHARGE_TEMP_FAULT, faults);
   toggleFaultFromFlag(CHARGE_TEMP_FAULT, faults);
+}
 
+static void sendTempSummaryOverCan() {
   if (syncSegments & 0x1) {
     syncSegments = syncSegments ^ 0x1;
 
@@ -102,10 +121,16 @@ void loop() {
 
     tempSense.sendCanMessage(CAN_RESP_SUMMARY_CAN_ID, data, CAN_RESP_SUMMARY_DLC);
   }
+}
+
+static void sendSegmentTempsOverCan() {
+  if (syncSegments < 2) return;
 
   for(uint8_t segment = 1; segment <= SEGMENT_COUNT; segment++) {
     if ((syncSegments >> segment) & 0x1) 
     {
+      syncSegments = syncSegments ^ (0x1 << segment);
+
       union {
         uint8_t temperatures[2][12];
         CanData_t canBuffers[3];
@@ -119,8 +144,6 @@ void loop() {
       tempSense.sendCanMessage(0x302 + segment*0x10, data.canBuffers[0], 8);
       tempSense.sendCanMessage(0x303 + segment*0x10, data.canBuffers[1], 8);
       tempSense.sendCanMessage(0x304 + segment*0x10, data.canBuffers[2], 8);
-
-      syncSegments = syncSegments ^ (0x1 << segment);
     }
   }
 }

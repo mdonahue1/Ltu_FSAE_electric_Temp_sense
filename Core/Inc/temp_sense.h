@@ -14,11 +14,15 @@
 
 #define CELL_TEMP_ROOM_TEMPERATURE_VOLTAGE            1.86f
 
+#define CELL_CHARGE_MIN_TEMP_VOLTAGE                  2.17f
+#define CELL_CHARGE_MIN_TEMP_C                        0.0f 
 #define CELL_CHARGE_MAX_TEMP_VOLTAGE                  1.58f
-#define CELL_CHARGE_MAX_TEMP_C                        45
+#define CELL_CHARGE_MAX_TEMP_C                        45.0f
 
+#define CELL_DISCHARGE_MIN_TEMP_VOLTAGE               2.35f
+#define CELL_DISCHARGE_MIN_TEMP_C                     -20.0f
 #define CELL_DISCHARGE_MAX_TEMP_VOLTAGE               1.51f
-#define CELL_DISCHARGE_MAX_TEMP_C                     60
+#define CELL_DISCHARGE_MAX_TEMP_C                     60.0f
 
 #define CAN_TEMP_C_OFFSET                             40
 
