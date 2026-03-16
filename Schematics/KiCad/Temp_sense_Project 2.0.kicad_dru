@@ -1,0 +1,5 @@
+(version 1)
+
+(rule component-to-component-clearance 
+	(constraint courtyard_clearance (min 0.5mm))
+	(severity warning))

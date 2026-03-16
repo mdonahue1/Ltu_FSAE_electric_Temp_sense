@@ -589,4 +589,15 @@
 		)
 	)
 	(embedded_fonts no)
+	(model "C:/Users/boogy/Downloads/348260240_stp/348260240.stp"
+		(offset
+			(xyz 13 -9 4.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
 )

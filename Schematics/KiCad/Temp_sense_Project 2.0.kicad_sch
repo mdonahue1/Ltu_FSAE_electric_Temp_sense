@@ -43,7 +43,7 @@
 	)
 	(wire
 		(pts
-			(xy 383.54 278.13) (xy 383.54 266.7)
+			(xy 398.78 278.13) (xy 398.78 266.7)
 		)
 		(stroke
 			(width 0)
@@ -103,7 +103,7 @@
 	)
 	(wire
 		(pts
-			(xy 425.45 266.7) (xy 425.45 278.13)
+			(xy 408.94 266.7) (xy 408.94 278.13)
 		)
 		(stroke
 			(width 0)
@@ -163,6 +163,16 @@
 	)
 	(wire
 		(pts
+			(xy 403.86 278.13) (xy 403.86 266.7)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8a4e41cf-9729-4c9a-bab3-017dc7315683")
+	)
+	(wire
+		(pts
 			(xy 370.84 212.09) (xy 370.84 234.95)
 		)
 		(stroke
@@ -213,7 +223,7 @@
 	)
 	(wire
 		(pts
-			(xy 378.46 278.13) (xy 378.46 266.7)
+			(xy 393.7 278.13) (xy 393.7 266.7)
 		)
 		(stroke
 			(width 0)
@@ -638,18 +648,8 @@
 				(justify right)
 			)
 		)
-		(pin "Fault Line 1" output
-			(at 425.45 266.7 270)
-			(uuid "66669860-2a2b-4a38-8c19-89172e62f9e3")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
 		(pin "CAN RX" input
-			(at 378.46 266.7 270)
+			(at 393.7 266.7 270)
 			(uuid "0f8b94bb-9157-4891-8de7-63367d2100c3")
 			(effects
 				(font
@@ -659,8 +659,28 @@
 			)
 		)
 		(pin "CAN TX" output
-			(at 383.54 266.7 270)
+			(at 398.78 266.7 270)
 			(uuid "cdf7bccb-7cad-4e63-92b1-00217b833beb")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "Charge Fault" output
+			(at 408.94 266.7 270)
+			(uuid "5109a401-b93f-496f-b034-16abadc8ae1d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "Discharge Fault" output
+			(at 403.86 266.7 270)
+			(uuid "0136ed19-3e86-4770-aefa-572221533e46")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -677,8 +697,8 @@
 		)
 	)
 	(sheet
-		(at 372.11 278.13)
-		(size 62.23 20.32)
+		(at 387.35 278.13)
+		(size 26.67 20.32)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -694,7 +714,7 @@
 		)
 		(uuid "a2a88989-6880-4ce3-a369-5ca5aeb72ce2")
 		(property "Sheetname" "Power and Isolation"
-			(at 371.3984 298.45 90)
+			(at 386.6384 298.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -703,7 +723,7 @@
 			)
 		)
 		(property "Sheetfile" "power input.kicad_sch"
-			(at 434.9246 298.45 90)
+			(at 414.6046 298.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -711,18 +731,8 @@
 				(justify left top)
 			)
 		)
-		(pin "Fault Line 1" input
-			(at 425.45 278.13 90)
-			(uuid "dcff9a68-4fd9-430d-a7dc-990aa3dfeae6")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "RXD" output
-			(at 378.46 278.13 90)
+			(at 393.7 278.13 90)
 			(uuid "6b5d239b-6742-4df6-be74-97adffb094ff")
 			(effects
 				(font
@@ -732,8 +742,28 @@
 			)
 		)
 		(pin "TXD" input
-			(at 383.54 278.13 90)
+			(at 398.78 278.13 90)
 			(uuid "51b5910f-d8d2-4c67-a691-a3f3d719515f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "Charge Fault" input
+			(at 408.94 278.13 90)
+			(uuid "29837b20-d046-42e2-ac21-fcd408c3fe08")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "Discharge Fault" input
+			(at 403.86 278.13 90)
+			(uuid "5c2e6110-d251-4d6d-a596-92927b97aa88")
 			(effects
 				(font
 					(size 1.27 1.27)

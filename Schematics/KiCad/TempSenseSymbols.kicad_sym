@@ -1003,7 +1003,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin bidirectional line
 				(at 0 -2.54 0)
 				(length 5.08)
 				(name "2"
@@ -1039,7 +1039,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin bidirectional line
 				(at 0 -7.62 0)
 				(length 5.08)
 				(name "4"
@@ -1075,7 +1075,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin bidirectional line
 				(at 0 -12.7 0)
 				(length 5.08)
 				(name "6"
@@ -1111,7 +1111,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin bidirectional line
 				(at 0 -17.78 0)
 				(length 5.08)
 				(name "8"
@@ -1147,7 +1147,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin bidirectional line
 				(at 0 -22.86 0)
 				(length 5.08)
 				(name "10"
@@ -1165,7 +1165,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin power_in line
 				(at 0 -25.4 0)
 				(length 5.08)
 				(name "11"
@@ -1201,7 +1201,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin power_in line
 				(at 0 -30.48 0)
 				(length 5.08)
 				(name "13"
@@ -1237,7 +1237,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin power_in line
 				(at 0 -35.56 0)
 				(length 5.08)
 				(name "15"
@@ -1291,7 +1291,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin bidirectional line
 				(at 0 -43.18 0)
 				(length 5.08)
 				(name "18"
@@ -1309,7 +1309,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin power_in line
 				(at 0 -45.72 0)
 				(length 5.08)
 				(name "19"
@@ -1345,7 +1345,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin power_in line
 				(at 0 -50.8 0)
 				(length 5.08)
 				(name "21"
@@ -1381,7 +1381,7 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin power_in line
 				(at 0 -55.88 0)
 				(length 5.08)
 				(name "23"
@@ -3270,6 +3270,449 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "ISO7841FDWW"
+		(pin_names
+			(offset 0.254)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 2.54 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+			)
+		)
+		(property "Value" "ISO7841FDWW"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+			)
+		)
+		(property "Footprint" "DWW0016A_N"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/gpn/iso7841"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "General Purpose Digital Isolator 5700Vrms 4 Channel 100Mbps 100kV/µs CMTI 16-SOIC (0.551\", 14.00mm Width)"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "ISO7841FDWW"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "ISO7841FDWW"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_fp_filters" "DWW0016A_N DWW0016A_M DWW0016A_L"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "ISO7841FDWW_0_1"
+			(polyline
+				(pts
+					(xy -12.7 20.32) (xy -12.7 -20.32)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -12.7 -20.32) (xy 12.7 -20.32)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy -1.27 -20.32) (xy -1.27 20.32)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 1.27 -20.32) (xy 1.27 20.32)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 12.7 20.32) (xy -12.7 20.32)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 12.7 -20.32) (xy 12.7 20.32)
+				)
+				(stroke
+					(width 0.2032)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(pin power_in line
+				(at -17.78 15.24 0)
+				(length 5.08)
+				(name "VCC1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -17.78 10.16 0)
+				(length 5.08)
+				(name "INA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -17.78 5.08 0)
+				(length 5.08)
+				(name "INB"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -17.78 0 0)
+				(length 5.08)
+				(name "INC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin tri_state line
+				(at -17.78 -5.08 0)
+				(length 5.08)
+				(name "OUTD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -17.78 -10.16 0)
+				(length 5.08)
+				(name "EN1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -17.78 -15.24 0)
+				(length 5.08)
+				(name "GND1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -17.78 -17.78 0)
+				(length 5.08)
+				(name "GND1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 17.78 15.24 180)
+				(length 5.08)
+				(name "VCC2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "16"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin tri_state line
+				(at 17.78 10.16 180)
+				(length 5.08)
+				(name "OUTA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin tri_state line
+				(at 17.78 5.08 180)
+				(length 5.08)
+				(name "OUTB"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin tri_state line
+				(at 17.78 0 180)
+				(length 5.08)
+				(name "OUTC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "12"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 17.78 -5.08 180)
+				(length 5.08)
+				(name "IND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 17.78 -10.16 180)
+				(length 5.08)
+				(name "EN2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 17.78 -15.24 180)
+				(length 5.08)
+				(name "GND2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 17.78 -17.78 180)
+				(length 5.08)
+				(name "GND2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "15"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "ISO7842FDWW"
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3812,6 +4255,166 @@
 					)
 				)
 				(number "15"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
+	(symbol "KWS-1205-3K"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "PS"
+			(at 3.81 1.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "KWS-1205-3k"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TempSenseFootprints:KWS-1205-3K"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://diwellshop.cafe24.com/web/DATASHEET/01_subtitle/4_POWER/2_DC-DC/KWS/KW.pdf"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Isolated Module DC DC Converter 1 Output 5V 3A 9V - 18V Input"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "KWS-1205-3K_0_1"
+			(rectangle
+				(start 0 0)
+				(end 20.32 -15.24)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 8.89 0) (xy 8.89 -15.24)
+				)
+				(stroke
+					(width 0)
+					(type dash)
+				)
+				(fill
+					(type none)
+				)
+			)
+			(polyline
+				(pts
+					(xy 11.43 0) (xy 11.43 -15.24)
+				)
+				(stroke
+					(width 0)
+					(type dash)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "KWS-1205-3K_1_1"
+			(pin power_in line
+				(at -2.54 -2.54 0)
+				(length 2.54)
+				(name "Vin+"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -2.54 -12.7 0)
+				(length 2.54)
+				(name "Vin-"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 22.86 -2.54 180)
+				(length 2.54)
+				(name "Vout+"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 22.86 -12.7 180)
+				(length 2.54)
+				(name "Vout-"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
 					(effects
 						(font
 							(size 1.27 1.27)
